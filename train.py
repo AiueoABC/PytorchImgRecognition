@@ -160,6 +160,11 @@ if __name__ == '__main__':
 
     # Start training
     model_ft, loss, acc = train_model(model, criterion, optim, num_epochs=epoch)
+    
+    # Save final result
+    torch.save(model_ft, f'./temp/trained_model_result.pth')
+    with open("label.txt", 'w')  as f:
+        f.write('\n'.join(data.classes))
 
     # To see what happened while training
     loss_train = loss["train"]
