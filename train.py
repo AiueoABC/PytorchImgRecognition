@@ -18,6 +18,10 @@ train_validation_ratio = 0.9
 batch_size = 32
 lr = 1e-4
 epoch = 100
+is_resume = True
+if is_resume:
+    model_path = './temp/exist_noexist/epoch81_loss0.21158937117824816_accu0.9698630136986301.pth'
+is_fineTune = True  # if True all layers except last layer will be frozen
 
 
 # To show image
@@ -44,16 +48,16 @@ def train_model(model, criterion, optimizer, scheduler=None, num_epochs=25):
 
     for epoch in tqdm(range(num_epochs)):
         print('\n')
-        if (epoch+1)%5 == 0:  # Show current epoch once in 5 times
+        if (epoch+1) % 5 == 0:  # Show current epoch once in 5 times
             print('Epoch {}/{}'.format(epoch, num_epochs - 1))
             print('-' * 10)
 
         # Training/Validation
         for phase in ['train', 'val']:
             if phase == 'train':
-                model.train()
+                model.train()  # change to train mode
             else:
-                model.eval()
+                model.eval()  # change to validation mode
 
             running_loss = 0.0
             running_corrects = 0
@@ -96,6 +100,7 @@ def train_model(model, criterion, optimizer, scheduler=None, num_epochs=25):
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())  # This is to keep original
+                # Save best model
                 torch.save(model, f'./temp/epoch{epoch}_loss{epoch_loss}_accu{epoch_acc}.pth')
 
     time_elapsed = time.time() - since
@@ -144,14 +149,29 @@ if __name__ == '__main__':
     imshow(torchvision.utils.make_grid(images))  # Show image
     print(' '.join('%5s' % labels[labels[j]] for j in range(8)))  # Show labels
 
-    # Load models to use
-    model = models.resnet50(pretrained=True)
+    # Select re-train it or not
+    if not is_resume:
+        # Load models to use
+        model = models.resnet50(pretrained=True)
 
-    # Rewrite final layer (Maybe adding layer is ok?)
-    # Resnet50's final is (fc): Linear(in_features=2048, out_features=1000, bias=True)
-    for p in model.parameters():
-        p.requires_grad = False  # Lock params
-    model.fc = nn.Linear(2048, 2)  # Rewrite the number on right is len(data.class_to_idx)
+        # ToDo: Add 'if not is_fineTune:' section_1
+        # Rewrite final layer (Maybe adding layer is ok?)
+        # Resnet50's final is (fc): Linear(in_features=2048, out_features=1000, bias=True)
+        for p in model.parameters():
+            p.requires_grad = not is_fineTune  # Lock params
+        # Change classes number according to actual classes to use (fc: final layer of resnet)
+        model.fc = nn.Linear(model.fc.in_features, len(data.class_to_idx))
+        # DenseNet
+        # model.classifier = nn.Linear(model.classifier.in_features, len(data.class_to_idx))
+    else:
+        # Load models to use
+        model = torch.load(model_path)
+
+        # ToDo: Add 'if not is_fineTune:' section_2
+        # Lock layers except last layer so to use pretrained model for fine-tuning
+        for p in model.parameters():
+            p.requires_grad = not is_fineTune  # Lock params
+        p.requires_grad = True  # Unlock last layer's params
 
     # Setup model for training
     model = model.cuda() if torch.cuda.is_available() else model
@@ -160,10 +180,10 @@ if __name__ == '__main__':
 
     # Start training
     model_ft, loss, acc = train_model(model, criterion, optim, num_epochs=epoch)
-    
+
     # Save final result
     torch.save(model_ft, f'./temp/trained_model_result.pth')
-    with open("label.txt", 'w')  as f:
+    with open("./temp/label.txt", 'w')  as f:
         f.write('\n'.join(data.classes))
 
     # To see what happened while training
@@ -171,6 +191,9 @@ if __name__ == '__main__':
     loss_val = loss["val"]
     acc_train = acc["train"]
     acc_val = acc["val"]
+    with open('./temp/train_data.dat', 'w') as f:
+        f.write('Epoch, TrainLoss, ValLoss, TrainAccu, ValidationAccu\n')
+        f.write('\n'.join([f'{i}, {loss["train"][i]}, {loss["val"][i]}, {acc["train"][i]}, {acc["val"][i]}' for i in range(len(loss['train']))]))
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))  # To plot n_rows x cols graph
     # Plot-0
     axes[0].plot(range(epoch), loss_train, label="train")
