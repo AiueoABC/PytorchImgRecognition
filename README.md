@@ -12,4 +12,5 @@ datasets should be like
                         ...
 ```  
 
-make `temp` directory to store model
+make `temp` directory to store model  
+using `is_fineTune = False` may consume a lot of memory.
