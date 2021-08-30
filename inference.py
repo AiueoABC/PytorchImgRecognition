@@ -8,8 +8,8 @@ import torch
 Ref: https://ichi.pro/pytorch-no-kenchosei-mappu-o-shiyoshita-nyu-rarunettowa-ku-no-shikakuka-44657159719604
 """
 
-data_path = './datasets/WheelchairNankai/no_exist/160006_844058.jpg'
-model_path = './temp/epoch44_loss0.05364989270182217.pth'
+data_path = './path_to_image.jpg'
+model_path = './temp/your_model.pth'
 label_path = './temp/label.txt'
 phase = 'test'
 
@@ -54,9 +54,13 @@ with open(label_path) as f:
 
 print(f'Image Path: {data_path}\nEstimation: {labels[score_max_index]}, Confidence: {scores[0][score_max_index]}')
 
+print('\nOther Labels;')
+a = sorted([(labels[i], scores[0][i]) for i in range(len(labels))], key=operator.itemgetter(1), reverse=True)
+[print(f'{a[i][0]}: {a[i][1]}') for i in range(len(a))]
+
 image = cv2.imread(data_path)
 cv2.putText(image, f'{labels[score_max_index]}, {scores[0][score_max_index]}',
-            (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0, 125, 255), 3)
+            (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 125, 255), 2)
 cv2.imshow("Annotated", image)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
