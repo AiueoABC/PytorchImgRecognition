@@ -120,6 +120,7 @@ if __name__ == '__main__':
         'train': transforms.Compose(
             [transforms.Resize((600, 600)),  # Set image size (Images will be automatically resized)
              transforms.RandomHorizontalFlip(),  # Mirror it randomly
+             transforms.ColorJitter(brightness=0.4, contrast=0.3, saturation=0.3),  # Change colors randomly
              transforms.ToTensor(),
              transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                   std=[0.229, 0.224, 0.225]),
