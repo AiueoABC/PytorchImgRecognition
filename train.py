@@ -159,14 +159,19 @@ if __name__ == '__main__':
         # Load models to use
         # model = models.resnet50(pretrained=True)
         model = models.densenet201(pretrained=True)
+        # model = models.vgg16(pretrained=True)
+        
         # Rewrite final layer (Maybe adding layer is ok?)
         # Resnet50's final is (fc): Linear(in_features=2048, out_features=1000, bias=True)
         for p in model.parameters():
             p.requires_grad = not is_fineTune if not is_randomTune else getrandbits(1) == 1  # Set False to lock params
-        # Change classes number according to actual classes to use (fc: final layer of resnet)
+        # Change classes number according to actual classes to use
+        # ResNet (fc: final layer of resnet)
         # model.fc = nn.Linear(model.fc.in_features, len(data.class_to_idx))
         # DenseNet
         model.classifier = nn.Linear(model.classifier.in_features, len(data.class_to_idx))
+        # VGG (classifier[-1]: final layer of VGG)
+        # model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, len(data.class_to_idx))
     else:
         # Load models to use
         model = torch.load(model_path)
