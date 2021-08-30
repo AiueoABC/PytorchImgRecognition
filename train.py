@@ -3,6 +3,7 @@ import numpy as np
 import copy
 import time
 import os
+from random import getrandbits
 from tqdm import tqdm
 
 import torchvision.transforms as transforms
@@ -20,8 +21,9 @@ lr = 1e-4
 epoch = 100
 is_resume = True
 if is_resume:
-    model_path = './temp/exist_noexist/epoch81_loss0.21158937117824816_accu0.9698630136986301.pth'
-is_fineTune = True  # if True all layers except last layer will be frozen
+    model_path = './temp/use_your model.pth'
+is_fineTune = False  # if True all layers except last layer will be frozen, if false it may consume a lot of memory
+is_randomTune = False  # If True all layers are randomly chosen to train model.
 
 
 # To show image
@@ -117,7 +119,7 @@ if __name__ == '__main__':
     transform_dict = {
         'train': transforms.Compose(
             [transforms.Resize((600, 600)),  # Set image size (Images will be automatically resized)
-             transforms.RandomHorizontalFlip(),
+             transforms.RandomHorizontalFlip(),  # Mirror it randomly
              transforms.ToTensor(),
              transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                   std=[0.229, 0.224, 0.225]),
@@ -129,7 +131,7 @@ if __name__ == '__main__':
                                   std=[0.229, 0.224, 0.225]),
              ])}
 
-    # Load datasets from a specified directory
+    # Load datasets from a specified directory, useful
     data = torchvision.datasets.ImageFolder(root=data_folder, transform=transform_dict[phase])
 
     # Separate datasets for training and validation
@@ -147,30 +149,31 @@ if __name__ == '__main__':
     dataiter = iter(dataloaders["train"])
     images, labels = dataiter.next()
     imshow(torchvision.utils.make_grid(images))  # Show image
-    print(' '.join('%5s' % labels[labels[j]] for j in range(8)))  # Show labels
+    try:
+        print(' '.join('%5s' % labels[labels[j]] for j in range(batch_size)))  # Show labels
+    except Exception:
+        pass
 
     # Select re-train it or not
     if not is_resume:
         # Load models to use
-        model = models.resnet50(pretrained=True)
-
-        # ToDo: Add 'if not is_fineTune:' section_1
+        # model = models.resnet50(pretrained=True)
+        model = models.densenet201(pretrained=True)
         # Rewrite final layer (Maybe adding layer is ok?)
         # Resnet50's final is (fc): Linear(in_features=2048, out_features=1000, bias=True)
         for p in model.parameters():
-            p.requires_grad = not is_fineTune  # Lock params
+            p.requires_grad = not is_fineTune if not is_randomTune else getrandbits(1)  # Set False to lock params
         # Change classes number according to actual classes to use (fc: final layer of resnet)
-        model.fc = nn.Linear(model.fc.in_features, len(data.class_to_idx))
+        # model.fc = nn.Linear(model.fc.in_features, len(data.class_to_idx))
         # DenseNet
-        # model.classifier = nn.Linear(model.classifier.in_features, len(data.class_to_idx))
+        model.classifier = nn.Linear(model.classifier.in_features, len(data.class_to_idx))
     else:
         # Load models to use
         model = torch.load(model_path)
 
-        # ToDo: Add 'if not is_fineTune:' section_2
         # Lock layers except last layer so to use pretrained model for fine-tuning
         for p in model.parameters():
-            p.requires_grad = not is_fineTune  # Lock params
+            p.requires_grad = not is_fineTune if not is_randomTune else getrandbits(1)  # Lock params
         p.requires_grad = True  # Unlock last layer's params
 
     # Setup model for training
