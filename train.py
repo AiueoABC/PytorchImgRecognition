@@ -162,7 +162,7 @@ if __name__ == '__main__':
         # Rewrite final layer (Maybe adding layer is ok?)
         # Resnet50's final is (fc): Linear(in_features=2048, out_features=1000, bias=True)
         for p in model.parameters():
-            p.requires_grad = not is_fineTune if not is_randomTune else getrandbits(1)  # Set False to lock params
+            p.requires_grad = not is_fineTune if not is_randomTune else getrandbits(1) == 1  # Set False to lock params
         # Change classes number according to actual classes to use (fc: final layer of resnet)
         # model.fc = nn.Linear(model.fc.in_features, len(data.class_to_idx))
         # DenseNet
@@ -173,7 +173,7 @@ if __name__ == '__main__':
 
         # Lock layers except last layer so to use pretrained model for fine-tuning
         for p in model.parameters():
-            p.requires_grad = not is_fineTune if not is_randomTune else getrandbits(1)  # Lock params
+            p.requires_grad = not is_fineTune if not is_randomTune else getrandbits(1) == 1  # Lock params
         p.requires_grad = True  # Unlock last layer's params
 
     # Setup model for training
