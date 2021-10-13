@@ -72,7 +72,7 @@ def train_model(model, criterion, optimizer, scheduler=None, num_epochs=25):
                     inputs = inputs.cuda()
                     labels = labels.cuda()
 
-                #~~~~~~~~~~~~~~forward~~~~~~~~~~~~~~~
+                # Forward
                 outputs = model(inputs)
 
                 _, preds = torch.max(outputs.data, 1)
@@ -92,7 +92,7 @@ def train_model(model, criterion, optimizer, scheduler=None, num_epochs=25):
             epoch_loss = running_loss / data_size[phase]
             epoch_acc = running_corrects.item() / data_size[phase] if use_gpu else running_corrects / data_size[phase]
 
-            # Save
+            # Save Loss and Accu for later
             loss_dict[phase].append(epoch_loss)
             acc_dict[phase].append(epoch_acc)
 
@@ -167,6 +167,7 @@ if __name__ == '__main__':
         for p in model.parameters():
             p.requires_grad = not is_fineTune if not is_randomTune else getrandbits(1) == 1  # Set False to lock params
         # Change classes number according to actual classes to use
+        # By setting this, final layer will be "requires_grad = True"
         # ResNet (fc: final layer of resnet)
         # model.fc = nn.Linear(model.fc.in_features, len(data.class_to_idx))
         # DenseNet
