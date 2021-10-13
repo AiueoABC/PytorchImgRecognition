@@ -4,9 +4,6 @@ import cv2
 
 import torch
 
-"""
-Ref: https://ichi.pro/pytorch-no-kenchosei-mappu-o-shiyoshita-nyu-rarunettowa-ku-no-shikakuka-44657159719604
-"""
 
 data_path = './path_to_image.jpg'
 model_path = './temp/your_model.pth'
