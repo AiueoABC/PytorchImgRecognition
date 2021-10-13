@@ -1,4 +1,5 @@
 # PytorchImgRecognition
+## To Use This By Myself
 datasets should be like
 ```
 ./datasets/DatasetRoot/ ┬ label1 ┬ image0.jpg
@@ -14,3 +15,4 @@ datasets should be like
 
 make `temp` directory to store model  
 using `is_fineTune = False` may consume a lot of memory.
+using `is_randomTune = False` may consume a lot of memory.
