@@ -21,9 +21,13 @@ transform_dict = {
     'train': transforms.Compose(
         [transforms.Resize((600, 600)),  # Set image size (Images will be automatically resized)
          transforms.RandomHorizontalFlip(),
+         transforms.ColorJitter(brightness=0.4, contrast=0.3, saturation=0.3),  # Change colors randomly
+         transforms.RandomAdjustSharpness(sharpness_factor=2, p=0.5),  # Change sharpness randomly
+         transforms.RandomPerspective(),  # random perspective transformation
          transforms.ToTensor(),
          transforms.Normalize(mean=[0.485, 0.456, 0.406],
                               std=[0.229, 0.224, 0.225]),
+         # transforms.RandomErasing(p=0.2, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=‘random’, inplace=False),
          ]),
     'test': transforms.Compose(
         [transforms.Resize((600, 600)),
