@@ -47,13 +47,13 @@ def train_model(model, criterion, optimizer, scheduler=None, num_epochs=25):
     # To save status
     loss_dict ={"train" : [],  "val" : []}
     acc_dict = {"train" : [],  "val" : []}
+    
+    pbar = tqdm(range(num_epochs))
 
-    for epoch in tqdm(range(num_epochs)):
-        print('\n')
-        if (epoch+1) % 5 == 0:  # Show current epoch once in 5 times
-            print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-            print('-' * 10)
-
+    for epoch in pbar:
+        txt2show = f'Epoch {epoch}/{num_epochs - 1}'
+        pbar.set_description(f'\n{txt2show}')
+        
         # Training/Validation
         for phase in ['train', 'val']:
             if phase == 'train':
@@ -63,8 +63,10 @@ def train_model(model, criterion, optimizer, scheduler=None, num_epochs=25):
 
             running_loss = 0.0
             running_corrects = 0
-
-            for data in dataloaders[phase]:
+            
+            iterations_length = len(dataloaders[phase])
+            for iteration, data in enumerate(dataloaders[phase]):
+                pbar.set_description(f'{txt2show}, {phase}>Processing {iteration}/{iterations_length} ...')
                 inputs, labels = data
 
                 # To move data to GPU
@@ -96,7 +98,7 @@ def train_model(model, criterion, optimizer, scheduler=None, num_epochs=25):
             loss_dict[phase].append(epoch_loss)
             acc_dict[phase].append(epoch_acc)
 
-            print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+            txt2show += f' | {phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}'
 
             # deep copy the model if found best
             if phase == 'val' and epoch_acc > best_acc:
@@ -106,8 +108,8 @@ def train_model(model, criterion, optimizer, scheduler=None, num_epochs=25):
                 torch.save(model, f'./temp/epoch{epoch}_loss{epoch_loss}_accu{epoch_acc}.pth')
 
     time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    print('Best val acc: {:.4f}'.format(best_acc))
+    print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s'
+    print(f'Best val acc: {best_acc:.4f}')
 
     # best weight and return
     model.load_state_dict(best_model_wts)
