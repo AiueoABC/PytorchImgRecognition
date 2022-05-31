@@ -24,6 +24,7 @@ if is_resume:
     model_path = './temp/use_your model.pth'
 is_fineTune = False  # if True all layers except last layer will be frozen, if false it may consume a lot of memory
 is_randomTune = False  # If True all layers are randomly chosen to train model.
+use_multi_gpu = False
 
 
 # To show image
@@ -193,6 +194,8 @@ if __name__ == '__main__':
     model = model.cuda() if torch.cuda.is_available() else model
     optim = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     criterion = nn.CrossEntropyLoss().cuda() if torch.cuda.is_available() else nn.CrossEntropyLoss()
+    if use_multi_gpu and torch.cuda.is_available():
+        model = torch.nn.DataParallel(model)
 
     # Start training
     model_ft, loss, acc = train_model(model, criterion, optim, num_epochs=epoch)
