@@ -165,9 +165,9 @@ if __name__ == '__main__':
     # Select re-train it or not
     if not is_resume:
         # Load models to use
-        # model = models.resnet50(pretrained=True)
-        model = models.densenet201(pretrained=True)
-        # model = models.vgg16(pretrained=True)
+        # model = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+        model = models.densenet201(weights=ResNet50_Weights.IMAGENET1K_V1)
+        # model = models.vgg16(weights=ResNet50_Weights.IMAGENET1K_V1)
         
         # Rewrite final layer (Maybe adding layer is ok?)
         # Resnet50's final is (fc): Linear(in_features=2048, out_features=1000, bias=True)
